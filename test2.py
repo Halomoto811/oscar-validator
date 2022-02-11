@@ -139,7 +139,7 @@ if main_radio == "Show Uploader":
                 st.warning("No face detected.")
                 st.stop()
             detected_faces = drawed_img_and_detected_faces[1]
-            st.success("Recoganized faces: " + str(len(detected_faces)))
+            st.success("Detected faces: " + str(len(detected_faces)))
             st.image(drawed_img_and_detected_faces[0],'Uploaded image',width=100,use_column_width=True)
             # handle spreadsheet
             result_dataframe = handle_result_dataframe(detected_faces)
@@ -160,18 +160,29 @@ if main_radio == "Show Uploader":
                     for idx,option in enumerate(detected_faces):
                         option_age = result_dataframe['age'][idx]
                         option_gender = result_dataframe['gender'][idx]
-                        options.append(str(idx) + " - Age: " + option_age + ", ")
+                        options.append(str(idx))
                     selected_face = st.selectbox("Please select only one face.",options)
+                else:
+                    selected_face = "0"
                 selected_second = st.radio("Choose a method to upload again",('Upload a file','Camera'))
                 if selected_second == 'Upload a file':
                     upload_second = st.file_uploader("Choose another photo",type=["jpg","jpeg","png"])
                 else:
-                    upload_second = st.camera_input("Open your camera and.. SMILE! :) ")
+                    upload_second = st.camera_input("Open your camera and.. SMILE AGAIN! :) ")
                 if upload_second is not None:
                     # pass face.face_id to api and compare
                     img2 = Image.open(upload_second)
                     compared_face_id = compare_faces(img2,detected_faces)
-
+                    second_img_and_detected_faces=get_face_api(img2)
+                    if len(second_img_and_detected_faces[1]) > 1:
+                        st.warning("More than 1 person was detected. Please choose another photo")
+                        st.stop()
+                    # verify if 2 photos are of the same person
+                    verify_result = face_client.face.verify_face_to_face(detected_faces[int(selected_face)].face_id,second_img_and_detected_faces[1][0].face_id)
+                    if verify_result.is_identical:
+                        st.success('Yoo!! Faces are of the same person with confidence: {}'.format(str(round(verify_result.confidence * 100)) + "%"))
+                    else:
+                        st.error('Oops!! Faces are of different persons with confidence: {}'.format(str(round(verify_result.confidence * 100)) + "%"))
 elif main_radio == "Show Visualization":
 #if st.sidebar.checkbox("Show Visualization"):
     """
