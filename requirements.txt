@@ -1,0 +1,5 @@
+streamlit
+Pillow
+azure-cognitiveservices-vision-face
+pandas
+numpy
