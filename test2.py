@@ -41,7 +41,7 @@ def get_face_api(img):
     if not detected_faces:
         return []
     # for each face define position of rectangle
-    arial = ImageFont.truetype("/usr/share/fonts/NewYork.ttf", 40)
+    #arial = ImageFont.truetype("/Library/Fonts/NewYork.ttf", 40)
     for index,face in enumerate(detected_faces):
         rect = face.face_rectangle
         left = rect.left
@@ -50,7 +50,7 @@ def get_face_api(img):
         height = rect.height
         draw = ImageDraw.Draw(img)
         draw.rectangle([(left,top),(left+width,top+height)],fill=None,outline='red',width=5)
-        draw.text((left+20,top+20),str(index),fill='red',font=arial)
+        #draw.text((left+20,top+20),str(index),fill='red',font=arial)
     return [img,detected_faces]
 
 # compare faces
