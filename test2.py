@@ -93,29 +93,27 @@ def handle_result_dataframe(faces):
             "hair_color": haircolor_list
             }
 ########### covid api ############
-def get_reported_kens():
+def get_reported_kens(all_json):
     ken_list = ["全国"]
-    period_str = dt.strftime(period,"%Y%m%d")
-    kens = requests.get("https://opendata.corona.go.jp/api/Covid19JapanAll?date="+period_str).json()
-    for ken in kens["itemList"]:
+    kens = all_json[len(all_json)-1]
+    for ken in kens["area"]:
         ken_list.append(ken["name_jp"])
     return ken_list
 
-def get_report_by_ken(ken):
-    date_list = []
-    number_list = []
+def get_result_by_ken(all_json,ken):
+    date_list_2 = []
+    number_list_2 = []
     if ken == "全国":
-        dailys = requests.get("https://data.corona.go.jp/converted-json/covid19japan-npatients.json").json()
+        for daily in all_json[len(all_json)-15:len(all_json)-1]:
+            date_list_2.append(daily["lastUpdate"])
+            number_list_2.append([daily["npatients"],daily["ncurrentpatients"]])
     else:
-        dailys = requests.get("https://opendata.corona.go.jp/api/Covid19JapanAll?dataName="+ken).json()["itemList"]
-    for daily in dailys:
-        this_date = dt.strptime(daily["date"],"%Y-%m-%d")
-        if this_date > period:
-            date_list.append(daily["date"])
-            number_list.append(int(daily["npatients"]))
-        date_list.sort()
-        number_list.sort()
-    return [date_list,number_list]
+        for daily in all_json[len(all_json)-15:len(all_json)-1]:
+            for area in daily["area"]:
+                if area["name_jp"] == selected_p:
+                    date_list_2.append(daily["lastUpdate"])
+                    number_list_2.append([area["npatients"],area["ncurrentpatients"]])
+    return [date_list_2,number_list_2]
 
 ########### UI #############
 st.sidebar.title("Oscar's Project")
@@ -181,31 +179,23 @@ elif main_radio == "Show Visualization":
     """
     with st.spinner("Processing..."):
         st.caption("* Data source: Japan Goverment (https://corona.go.jp/dashboard/)")
-        kens = get_reported_kens()
+        all_json = requests.get("https://www.stopcovid19.jp/data/covid19japan-all.json").json()
+        kens = get_reported_kens(all_json)
 
         selected_p = st.selectbox("Select a prefecture.",kens)
-        if selected_p == "全国":
-            ken_report = get_report_by_ken("全国")
-            covid_df = pd.DataFrame(
-                ken_report[1],
-                columns=[selected_p],
-                index=ken_report[0]
-                )
-        else:
-            ken_report = get_report_by_ken(selected_p)
-            covid_df = pd.DataFrame(
-                ken_report[1],
-                columns=[selected_p],
-                index=ken_report[0]
-                )
+        ken_report = get_result_by_ken(all_json,selected_p)
+        covid_df = pd.DataFrame(
+            ken_report[1],
+            columns=["合計","新規"],
+            index=ken_report[0]
+            )
 
         st.empty()
-        last = ken_report[1][len(ken_report[1])-1]
-        last2 = ken_report[1][len(ken_report[1])-2]
-        st.metric(selected_p+" ("+ken_report[0][len(ken_report[0])-1]+")",str(last)+" 件",str(last-last2)+" 件")
+        last = ken_report[1][len(ken_report[1])-1][0]
+        last2 = ken_report[1][len(ken_report[1])-2][0]
+        st.metric(selected_p+" (Last Update: "+ken_report[0][len(ken_report[0])-1]+")",str(last)+" 件",str(last-last2)+" 件")
         with st.container():
             st.bar_chart(covid_df)
-
 
         #df = pd.DataFrame(
             #[[139.62,35.66],[139.2,35.22],[139.11,35.222],[139.11,35.225]],
