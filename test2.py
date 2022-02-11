@@ -41,7 +41,7 @@ def get_face_api(img):
     if not detected_faces:
         return []
     # for each face define position of rectangle
-    arial = ImageFont.truetype("/Library/Fonts/NewYork.ttf", 40)
+    arial = ImageFont.truetype("/usr/share/fonts/NewYork.ttf", 40)
     for index,face in enumerate(detected_faces):
         rect = face.face_rectangle
         left = rect.left
