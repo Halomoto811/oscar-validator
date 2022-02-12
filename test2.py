@@ -53,10 +53,6 @@ def get_face_api(img):
         #draw.text((left+20,top+20),str(index),fill='red',font=arial)
     return [img,detected_faces]
 
-# compare faces
-def compare_faces(img2,faces):
-    img = img2
-
 # return multiple lists
 def handle_result_dataframe(faces):
     age_list = []
@@ -103,22 +99,26 @@ def get_reported_kens(all_json):
 def get_result_by_ken(all_json,ken):
     date_list_2 = []
     number_list_2 = []
+    current_patients = 0
     if ken == "全国":
-        for daily in all_json[len(all_json)-15:len(all_json)-1]:
-            date_list_2.append(daily["lastUpdate"])
-            number_list_2.append([daily["npatients"],daily["ncurrentpatients"]])
+        for idx,daily in enumerate(all_json[len(all_json)-16:len(all_json)-1]):
+            if not idx == 0:
+                date_list_2.append(daily["lastUpdate"])
+                number_list_2.append([daily["npatients"],daily["npatients"]-current_patients])
+            current_patients = daily["npatients"]
     else:
-        for daily in all_json[len(all_json)-15:len(all_json)-1]:
+        for idx,daily in enumerate(all_json[len(all_json)-16:len(all_json)-1]):
             for area in daily["area"]:
                 if area["name_jp"] == selected_p:
-                    date_list_2.append(daily["lastUpdate"])
-                    number_list_2.append([area["npatients"],area["ncurrentpatients"]])
+                    if not idx == 0:
+                        date_list_2.append(daily["lastUpdate"])
+                        number_list_2.append([area["npatients"],area["npatients"]-current_patients])
+                    current_patients = area["npatients"]
     return [date_list_2,number_list_2]
 
 ########### UI #############
 st.sidebar.title("Oscar's Project")
 main_radio = st.sidebar.radio("Choose a page",("Show Visualization","Show Uploader"))
-#if st.sidebar.checkbox("Show Uploader"):
 if main_radio == "Show Uploader":
     """
     @ Oscar's face validator test
