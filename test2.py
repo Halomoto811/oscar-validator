@@ -172,7 +172,6 @@ if main_radio == "Show Uploader":
                 if upload_second is not None:
                     # pass face.face_id to api and compare
                     img2 = Image.open(upload_second)
-                    compared_face_id = compare_faces(img2,detected_faces)
                     second_img_and_detected_faces=get_face_api(img2)
                     if len(second_img_and_detected_faces[1]) > 1:
                         st.warning("More than 1 person was detected. Please choose another photo")
